@@ -74,7 +74,7 @@ class CropCenter(object):
             self.size = size
 
     def __call__(self, sample):
-        kks = sample.keys()
+        kks = list(sample.keys())
         th, tw = self.size
         h, w = sample[kks[0]].shape[0], sample[kks[0]].shape[1]
         if w == tw and h == th:
