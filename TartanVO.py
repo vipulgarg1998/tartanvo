@@ -31,6 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import torch
+import torch.nn as nn
 import numpy as np
 import time
 
@@ -108,3 +109,50 @@ class TartanVO(object):
         print("{} Pose inference using {}s: \n{}".format(self.test_count, inferencetime, posenp))
         return posenp, flownp
 
+    def upToScaleLossFunc(self, pose_est, pose_truth):
+        e = torch.tensor(1e-6)
+        trans_est = pose_est[:,:3]
+        rot_est = pose_est[:,3:]
+        trans_truth = pose_truth[:,:3]
+        rot_truth = pose_truth[:,3:]
+        trans_est_norm = torch.linalg.norm(trans_est)
+        trans_truth_norm = torch.linalg.norm(trans_truth)
+
+        trans_loss = torch.linalg.norm(trans_est/torch.max(trans_est_norm, e) - trans_truth/torch.max(trans_truth_norm, e))
+        rot_loss = torch.linalg.norm(rot_est - rot_truth)
+        return trans_loss + rot_loss
+
+    def train(self, data_loader, optimizer, num_epochs, dataset_size):
+        criterion = nn.L1Loss()
+        pose_std = torch.from_numpy(self.pose_std).unsqueeze(0).cuda()
+        print(pose_std)
+        for epoch in range(num_epochs):
+            print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+            self.vonet.train()
+
+            running_loss = 0.0
+            # Iterate over data.
+            for bi, sample in enumerate(data_loader):
+
+                img0   = sample['img1'].cuda()
+                img1   = sample['img2'].cuda()
+                intrinsic = sample['intrinsic'].cuda()
+                label = sample['motion'].cuda()
+                inputs = [img0, img1, intrinsic]
+
+                optimizer.zero_grad()
+
+                with torch.set_grad_enabled(True):
+                    flow, pose = self.vonet(inputs)
+                    pose = torch.mul(pose, pose_std)
+                    # print("pose", pose[:,:3])
+                    # print("GT", label)
+                    # loss = criterion(pose, label)
+                    loss = self.upToScaleLossFunc(pose_est=pose, pose_truth=label)
+                    loss.backward()
+                    optimizer.step()
+
+                running_loss += loss.item()
+            epoch_loss = running_loss / dataset_size
+            print('Loss: {:.4f}'.format(epoch_loss))
+        # return model

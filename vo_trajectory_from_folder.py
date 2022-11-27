@@ -81,6 +81,8 @@ if __name__ == '__main__':
             break
 
         motions, flow = testvo.test_batch(sample)
+        print(motions)
+        print(sample['motion'])
         motionlist.extend(motions)
 
         if args.save_flow:
