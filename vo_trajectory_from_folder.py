@@ -28,6 +28,8 @@ def get_args():
                         help='euroc test (default: False)')
     parser.add_argument('--kitti', action='store_true', default=False,
                         help='kitti test (default: False)')
+    parser.add_argument('--unity', action='store_true', default=False,
+                        help='unity test (default: False)')
     parser.add_argument('--kitti-intrinsics-file',  default='',
                         help='kitti intrinsics file calib.txt (default: )')
     parser.add_argument('--test-dir', default='',
@@ -53,6 +55,10 @@ if __name__ == '__main__':
         datastr = 'kitti'
     elif args.euroc:
         datastr = 'euroc'
+    elif args.unity:
+        datastr = 'unity'
+        # args.image_height = 640
+        # args.image_width = 640
     else:
         datastr = 'tartanair'
     focalx, focaly, centerx, centery = dataset_intrinsics(datastr) 
@@ -81,8 +87,8 @@ if __name__ == '__main__':
             break
 
         motions, flow = testvo.test_batch(sample)
-        print(motions)
-        print(sample['motion'])
+        # print(motions.shape)
+        # print(sample['motion'])
         motionlist.extend(motions)
 
         if args.save_flow:
@@ -103,9 +109,10 @@ if __name__ == '__main__':
             print("==> ATE: %.4f" %(results['ate_score']))
         else:
             print("==> ATE: %.4f,\t KITTI-R/t: %.4f, %.4f" %(results['ate_score'], results['kitti_score'][0], results['kitti_score'][1]))
-
+        print('results/'+testname+'.png')
         # save results and visualization
         plot_traj(results['gt_aligned'], results['est_aligned'], vis=False, savefigname='results/'+testname+'.png', title='ATE %.4f' %(results['ate_score']))
         np.savetxt('results/'+testname+'.txt',results['est_aligned'])
     else:
         np.savetxt('results/'+testname+'.txt',poselist)
+        np.save('results/'+testname+'.npy', poselist)

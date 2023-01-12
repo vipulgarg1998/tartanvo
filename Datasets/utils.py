@@ -221,6 +221,10 @@ def dataset_intrinsics(dataset='tartanair'):
         focalx, focaly, centerx, centery = 458.6539916992, 457.2959899902, 367.2149963379, 248.3750000000
     elif dataset == 'tartanair':
         focalx, focaly, centerx, centery = 320.0, 320.0, 320.0, 240.0
+    elif dataset == 'unity':
+        focalx, focaly, centerx, centery = 493.93, 491.9921, 320.0, 320.0
+        focalx, focaly, centerx, centery = 414.2948, 554.2561, 320.0, 320.0
+        focalx, focaly, centerx, centery = 813.124, 830.767, 585.5, 265
     else:
         return None
     return focalx, focaly, centerx, centery

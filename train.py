@@ -29,6 +29,8 @@ def get_args():
                         help='euroc test (default: False)')
     parser.add_argument('--kitti', action='store_true', default=False,
                         help='kitti test (default: False)')
+    parser.add_argument('--unity', action='store_true', default=False,
+                        help='Unity test (default: False)')
     parser.add_argument('--kitti-intrinsics-file',  default='',
                         help='kitti intrinsics file calib.txt (default: )')
     parser.add_argument('--test-dir', default='',
@@ -54,6 +56,8 @@ if __name__ == '__main__':
         datastr = 'kitti'
     elif args.euroc:
         datastr = 'euroc'
+    elif args.unity:
+        datastr = 'unity'
     else:
         datastr = 'tartanair'
     focalx, focaly, centerx, centery = dataset_intrinsics(datastr) 
@@ -70,5 +74,5 @@ if __name__ == '__main__':
 
     lr = 1e-4
     decay = 0.2
-    optimizer = optim.Adam(trainVO.vonet.parameters(), lr=0.001, weight_decay=decay)
+    optimizer = optim.Adam(trainVO.vonet.parameters(), lr=lr, weight_decay=decay)
     trainVO.train(data_loader=trainDataloader, optimizer=optimizer, num_epochs=30, dataset_size=dataset_size)
